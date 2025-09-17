@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Directory to save Pokémon data
+OUTPUT_DIR="pokemon_data"
+mkdir -p "$OUTPUT_DIR"
+
+# List of Pokémon
+pokemon_list=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+
+# Maximum retries per Pokémon
+MAX_RETRIES=3
+
+# Function to fetch Pokémon data with retries
+fetch_pokemon() {
+    local pokemon=$1
+    local attempt=1
+    local success=0
+
+    echo "Fetching data for $pokemon..."
+
+    while [ $attempt -le $MAX_RETRIES ]; do
+        http_code=$(curl -s -w "%{http_code}" -o "$OUTPUT_DIR/$pokemon.json" "https://pokeapi.co/api/v2/pokemon/$pokemon")
+        
+        if [ "$http_code" -eq 200 ]; then
+            echo "Saved data to $OUTPUT_DIR/$pokemon.json ✅"
+            success=1
+            break
+        else
+            echo "Attempt $attempt for $pokemon failed (HTTP $http_code). Retrying..."
+            ((attempt++))
+            sleep 1
+        fi
+    done
+
+    if [ $success -eq 0 ]; then
+        echo "Failed to fetch $pokemon after $MAX_RETRIES attempts." >> errors.txt
+        rm -f "$OUTPUT_DIR/$pokemon.json"
+    fi
+}
+
+# Loop through Pokémon and fetch in background
+for pokemon in "${pokemon_list[@]}"; do
+    fetch_pokemon "$pokemon" &
+done
+
+# Wait for all background processes to finish
+wait
+
+echo "All Pokémon data fetched."
