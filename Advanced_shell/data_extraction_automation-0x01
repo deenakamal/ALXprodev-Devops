@@ -3,11 +3,11 @@
 # Input JSON file
 DATA_FILE="data.json"
 
-# Extract name, height, weight, and type using jq
-name=$(jq -r '.name' "$DATA_FILE" | sed 's/^./\U&/')   # Capitalize first letter
-height=$(jq -r '.height' "$DATA_FILE" | awk '{printf "%.1f",$1/10}')  # Convert dm to m
-weight=$(jq -r '.weight' "$DATA_FILE" | awk '{printf "%.0f",$1/10}')  # Convert hg to kg
-type=$(jq -r '.types[0].type.name' "$DATA_FILE" | sed 's/^./\U&/')   # Capitalize
+# Extract values using jq
+name=$(jq -r '.name' "$DATA_FILE" | sed 's/^./\U&/')
+formatted_height=$(jq -r '.height' "$DATA_FILE" | awk '{printf "%.1f",$1/10}')  # dm to m
+formatted_weight=$(jq -r '.weight' "$DATA_FILE" | awk '{printf "%.0f",$1/10}')  # hg to kg
+type=$(jq -r '.types[0].type.name' "$DATA_FILE" | sed 's/^./\U&/')
 
-# Print formatted output
-echo "$name is of type $type, weighs ${weight}kg, and is ${height}m tall."
+# Print formatted output exactly as expected
+echo "$name is of type $type, weighs ${formatted_weight}kg, and is ${formatted_height}m tall."
